@@ -1,6 +1,5 @@
 import requests
 import json
-import os
 
 def get_google_jobs():
     api_key = "9bb19ffe2ecf0a94607704bc225baf3b659fd1c7c915052a8a18d49be226dda6"
@@ -17,22 +16,19 @@ def get_google_jobs():
         "film jobs UK",
         "freelance film jobs"
     ]
-
     all_jobs = []
-
     for query in queries:
         params = {
             "engine": "google_jobs",
             "q": query,
             "api_key": api_key
         }
-
         try:
-            res = requests.get(base_url, params=params)
+            res = requests.get(base_url, params=params, timeout=10)
             res.raise_for_status()
             data = res.json()
             jobs = data.get("jobs_results", [])
-            print(f"🔍 Query '{query}' returned {len(jobs)} jobs.")
+            print(f"🔍 Google Jobs Query '{query}' returned {len(jobs)} jobs")
             for job in jobs:
                 all_jobs.append({
                     "title": job.get("title", "Unknown"),
@@ -43,9 +39,4 @@ def get_google_jobs():
                 })
         except Exception as e:
             print(f"⚠️ SerpAPI failed for query '{query}': {e}")
-
-    # Save results to local file
-    with open("jobs.json", "w") as f:
-        json.dump(all_jobs, f, indent=2)
-
     return all_jobs
