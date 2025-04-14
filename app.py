@@ -4,7 +4,6 @@ from scrapers.get_all_jobs import get_all_jobs
 import os
 import json
 import time
-import threading
 
 app = Flask(__name__)
 CORS(app)
@@ -19,8 +18,9 @@ def is_cache_fresh(file_path):
 
 def refresh_cache():
     try:
-        print("🔄 Running background scraper...")
+        print("🔄 Running (synchronous) scraper for debugging...")
         result = get_all_jobs()
+        print(f"🧪 Scraper returned {len(result['jobs'])} jobs.")
         with open(CACHE_FILE, "w") as f:
             json.dump(result["jobs"], f, indent=2)
         print(f"✅ Cache updated with {len(result['jobs'])} jobs.")
@@ -30,10 +30,11 @@ def refresh_cache():
 
 @app.route("/api/jobs")
 def jobs_api():
-    # Start background update
-    threading.Thread(target=refresh_cache).start()
+    print("👀 /api/jobs endpoint hit")
 
-    # Return cached results
+    # Run scraper inline (not in thread) to debug
+    refresh_cache()
+
     if os.path.exists(CACHE_FILE):
         try:
             with open(CACHE_FILE, "r") as f:
@@ -47,7 +48,7 @@ def jobs_api():
 
 @app.route("/")
 def home():
-    return "✅ FilmJobs API is live. Try /api/jobs"
+    return "✅ FilmJobs API (debug mode) is live. Try /api/jobs"
 
 
 if __name__ == "__main__":
