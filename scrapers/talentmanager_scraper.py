@@ -2,25 +2,22 @@ import requests
 from bs4 import BeautifulSoup
 
 def get_talent_manager_jobs(pages=5):
-    print("📡 Scraping Talent Manager...")
+    print("📡 Calling get_talent_manager_jobs...")
     jobs = []
     base_url = "https://www.thetalentmanager.com/jobs?size=10&page={}"
-
-    headers = {
-        "User-Agent": "Mozilla/5.0"
-    }
+    headers = {"User-Agent": "Mozilla/5.0"}
 
     try:
         for page in range(1, pages + 1):
             url = base_url.format(page)
             res = requests.get(url, headers=headers)
-            res.raise_for_status()
+            print(f"🧪 TM page {page} status: {res.status_code}")
             soup = BeautifulSoup(res.text, "html.parser")
-
             job_cards = soup.select("div.job")
+            print(f"🧪 Page {page}: Found {len(job_cards)} TM job cards")
 
             if not job_cards:
-                print(f"📭 No jobs found on page {page}. Ending pagination.")
+                print(f"📭 No jobs on TM page {page}, stopping.")
                 break
 
             for card in job_cards:
