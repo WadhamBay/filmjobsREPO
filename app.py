@@ -1,9 +1,11 @@
 from flask import Flask, jsonify
+from flask_cors import CORS
 from scrapers.google_jobs import get_google_jobs
 import os
 import json
 
 app = Flask(__name__)
+CORS(app)
 
 @app.route("/api/jobs")
 def get_all_jobs():
@@ -21,6 +23,10 @@ def get_all_jobs():
             return jsonify({"jobs": jobs, "errors": []})
         except Exception as e:
             return jsonify({"jobs": [], "errors": [f"Google Jobs failed: {str(e)}"]})
+
+@app.route("/")
+def home():
+    return "✅ FilmJobs API is live. Try /api/jobs"
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
