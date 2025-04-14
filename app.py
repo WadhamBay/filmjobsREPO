@@ -30,7 +30,8 @@ def refresh_cache():
 
 @app.route("/api/jobs")
 def jobs_api():
-    print("👀 /api/jobs endpoint hit")
+    print("🔔 About to call get_all_jobs()")
+    refresh_cache()
 
     # Run scraper inline (not in thread) to debug
     refresh_cache()
