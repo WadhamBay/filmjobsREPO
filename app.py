@@ -1,28 +1,36 @@
 from flask import Flask, jsonify
 from flask_cors import CORS
-from scrapers.google_jobs import get_google_jobs
+from scrapers.get_all_jobs import get_all_jobs
 import os
 import json
+import time
 
 app = Flask(__name__)
 CORS(app)
 
+CACHE_FILE = "jobs.json"
+CACHE_DURATION = 24 * 60 * 60  # 24 hours in seconds
+
+def is_cache_fresh(file_path):
+    return os.path.exists(file_path) and (time.time() - os.path.getmtime(file_path) < CACHE_DURATION)
+
 @app.route("/api/jobs")
-def get_all_jobs():
-    jobs_file = "jobs.json"
-    if os.path.exists(jobs_file):
+def jobs_api():
+    if is_cache_fresh(CACHE_FILE):
         try:
-            with open(jobs_file, "r") as f:
+            with open(CACHE_FILE, "r") as f:
                 jobs = json.load(f)
             return jsonify({"jobs": jobs, "errors": []})
         except Exception as e:
-            return jsonify({"jobs": [], "errors": [f"Failed to read jobs.json: {str(e)}"]})
+            return jsonify({"jobs": [], "errors": [f"Error reading jobs.json: {str(e)}"]})
     else:
         try:
-            jobs = get_google_jobs()
-            return jsonify({"jobs": jobs, "errors": []})
+            result = get_all_jobs()
+            with open(CACHE_FILE, "w") as f:
+                json.dump(result["jobs"], f, indent=2)
+            return jsonify(result)
         except Exception as e:
-            return jsonify({"jobs": [], "errors": [f"Google Jobs failed: {str(e)}"]})
+            return jsonify({"jobs": [], "errors": [f"Scraper failed: {str(e)}"]})
 
 @app.route("/")
 def home():
